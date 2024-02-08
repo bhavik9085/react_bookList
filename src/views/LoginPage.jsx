@@ -13,33 +13,33 @@ import { fetchNotes, selectNotes } from '../store/notesSlice.js';
 function LoginPage() {
 
   const [userCredential, setUserCredential] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [loginType, setLoginType] = useState('login');
   const [loginError, setLoginError] = useState();
   const dispatch = useDispatch();
   const booksStatus = useSelector(selectBooks).status;
   const notesStatus = useSelector(selectNotes).status;
 
-  onAuthStateChanged(auth, (user) => {
-    let userDetails ={};
-    if (user) {
-      userDetails.uid = user.uid; 
-      userDetails.email= user.email
-      dispatch(setUser(userDetails));
+  // onAuthStateChanged(auth, (user) => {
+  //   let userDetails ={};
+  //   if (user) {
+  //     userDetails.uid = user.uid; 
+  //     userDetails.email= user.email
+  //     dispatch(setUser(userDetails));
 
-      if (booksStatus == "idle"){
-        dispatch(fetchBooks(userDetails.uid));
-      }
-      if (notesStatus == 'idle'){
-        dispatch(fetchNotes(userDetails.uid));
-      }
-    } else {
-      dispatch(setUser(null));
-    }
-    if (isLoading){
-      setIsLoading(false);
-    }
-  })
+  //     if (booksStatus == "idle"){
+  //       dispatch(fetchBooks(userDetails.uid));
+  //     }
+  //     if (notesStatus == 'idle'){
+  //       dispatch(fetchNotes(userDetails.uid));
+  //     }
+  //   } else {
+  //     dispatch(setUser(null));
+  //   }
+  //   if (isLoading){
+  //     setIsLoading(false);
+  //   }
+  // })
 
   function updateUserCredential(e) {
     setUserCredential({...userCredential, [e.target.name] : e.target.value});
@@ -56,15 +56,43 @@ function LoginPage() {
     });
   }
 
-  function loginHandler(e){
+  async function loginHandler(e){
     e.preventDefault();
     setLoginError("");
+    let userDetails ={};
 
-    signInWithEmailAndPassword(auth, userCredential.email, userCredential.password)
-    .catch((error) => {
-      const errorMessage = error.message;
-      setLoginError(errorMessage);
-    });
+    const response = await loginRequest();
+    userDetails.uid = response.localId; 
+    userDetails.email= response.email;
+    dispatch(setUser(userDetails));
+
+    if (booksStatus == "idle"){
+      dispatch(fetchBooks(userDetails.uid));
+    }
+    if (notesStatus == 'idle'){
+      dispatch(fetchNotes(userDetails.uid));
+    }
+
+    if (isLoading){
+      setIsLoading(false);
+    }
+    
+
+    // signInWithEmailAndPassword(auth, userCredential.email, userCredential.password)
+    // .catch((error) => {
+    //   const errorMessage = error.message;
+    //   setLoginError(errorMessage);
+    // });
+  }
+
+  async function loginRequest() {
+    try{
+      const response = await fetch(`http://localhost:8080/${userCredential.password}/${userCredential.email}`);
+      const user = await response.json();
+      return user;
+    } catch (err){
+      console.log(err);
+    }
   }
 
   function passwordResetHandler() {
