@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { auth } from '../firebase/config.js';
+import { declarations } from '../firebase/config.js';
 import { signOut } from "firebase/auth";
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/userSlice.js";
@@ -8,6 +8,7 @@ import {cleanBooks} from "../store/booksSlice.js";
 function Header({pageTitle}) {
 
   const dispatch = useDispatch();
+  const auth = declarations.auth1;
 
   function logOutHandler() {
     if(confirm("Do you really want to Logout??")){

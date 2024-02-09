@@ -1,6 +1,6 @@
 import FullPageLoader from '../components/FullPageLoader.jsx';
 import {useState} from 'react';
-import { auth } from '../firebase/config.js';
+import { declarations } from '../firebase/config.js';
 import { createUserWithEmailAndPassword,
         signInWithEmailAndPassword,
         sendPasswordResetEmail,
@@ -19,6 +19,7 @@ function LoginPage() {
   const dispatch = useDispatch();
   const booksStatus = useSelector(selectBooks).status;
   const notesStatus = useSelector(selectNotes).status;
+  const auth = declarations.auth1;
 
   // onAuthStateChanged(auth, (user) => {
   //   let userDetails ={};

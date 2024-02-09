@@ -1,6 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { db, auth } from '../firebase/config';
+import { declarations } from '../firebase/config';
 import { collection, query, where, getDocs, doc, deleteDoc, addDoc, writeBatch } from "firebase/firestore";
+
+var auth, db;
+
+declarations().then(function(result) {
+  auth = result.auth1; 
+  db = result.db1
+});
 
 export const notesSlice = createSlice({
   name: 'notes',
