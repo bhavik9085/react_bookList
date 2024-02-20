@@ -17,7 +17,7 @@ var db1 = null;
 
 export async function declarations() {
   try{
-    const response = await fetch("http://localhost:8080");
+    const response = await fetch("https://react-booklist-v107.onrender.com:8080");
     const APIkey = await response.json();
     firebaseConfig = {
       apiKey: APIkey,

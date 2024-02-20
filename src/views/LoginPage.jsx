@@ -3,8 +3,7 @@ import {useState} from 'react';
 import { declarations } from '../firebase/config.js';
 import { createUserWithEmailAndPassword,
         signInWithEmailAndPassword,
-        sendPasswordResetEmail,
-        onAuthStateChanged} from "firebase/auth";
+        sendPasswordResetEmail} from "firebase/auth";
 import { setUser } from '../store/userSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectBooks, fetchBooks } from '../store/booksSlice.js';
@@ -21,26 +20,26 @@ function LoginPage() {
   const notesStatus = useSelector(selectNotes).status;
   const auth = declarations.auth1;
 
-  // onAuthStateChanged(auth, (user) => {
-  //   let userDetails ={};
-  //   if (user) {
-  //     userDetails.uid = user.uid; 
-  //     userDetails.email= user.email
-  //     dispatch(setUser(userDetails));
+  {/* onAuthStateChanged(auth, (user) => {
+    let userDetails ={};
+    if (user) {
+      userDetails.uid = user.uid; 
+      userDetails.email= user.email
+      dispatch(setUser(userDetails));
 
-  //     if (booksStatus == "idle"){
-  //       dispatch(fetchBooks(userDetails.uid));
-  //     }
-  //     if (notesStatus == 'idle'){
-  //       dispatch(fetchNotes(userDetails.uid));
-  //     }
-  //   } else {
-  //     dispatch(setUser(null));
-  //   }
-  //   if (isLoading){
-  //     setIsLoading(false);
-  //   }
-  // })
+      if (booksStatus == "idle"){
+        dispatch(fetchBooks(userDetails.uid));
+      }
+      if (notesStatus == 'idle'){
+        dispatch(fetchNotes(userDetails.uid));
+      }
+    } else {
+      dispatch(setUser(null));
+    }
+    if (isLoading){
+      setIsLoading(false);
+    }
+  }) */}
 
   function updateUserCredential(e) {
     setUserCredential({...userCredential, [e.target.name] : e.target.value});
@@ -88,7 +87,7 @@ function LoginPage() {
 
   async function loginRequest() {
     try{
-      const response = await fetch(`http://localhost:8080/${userCredential.password}/${userCredential.email}`);
+      const response = await fetch(`https://react-booklist-v107.onrender.com:8080/${userCredential.password}/${userCredential.email}`);
       const user = await response.json();
       return user;
     } catch (err){
