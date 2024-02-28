@@ -4,6 +4,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {selectBooks, eraseBook, toggleRead} from '../store/booksSlice.js';
 import {eraseBookNotes, selectNotes} from '../store/notesSlice.js';
 import FullPageLoader from '../components/FullPageLoader.jsx';
+import { useSamples } from '../store/Samples.jsx';
 
 function SingleBookPage() {
   
@@ -11,23 +12,35 @@ function SingleBookPage() {
   const navigate = useNavigate();
   const {id} = useParams();
   const books = useSelector(selectBooks).books;
+  var allBooks = JSON.parse(JSON.stringify(books));
+  const store = useSamples();
+  const sampleBooks = store.samples[0].books;
+  allBooks.push(...sampleBooks);
   const booksStatus = useSelector(selectBooks).status;
   const notes = useSelector(selectNotes).notes;
   const booksLoading = useSelector(selectBooks).loading;
   const notesLoading = useSelector(selectNotes).loading;
-  const book = books.filter(book => book.id == id)[0];
+  const book = allBooks.filter(book => book.id == id)[0];
 
   function handleEraseBook(id) {
     if(confirm('Are you sure you want to erase this book and all notes associated with it?')){
-      dispatch(eraseBook({id}));
-      let notesToDel = notes.filter(note => note.book_id == id);
-      dispatch(eraseBookNotes({notesToDel, id}));
+      if (book.sample){
+        store.dispatch({type: "eraseBook", payload:id})
+      } else {
+        dispatch(eraseBook({id}));
+        let notesToDel = notes.filter(note => note.book_id == id);
+        dispatch(eraseBookNotes({notesToDel, id}));
+      }
       navigate("/");
     }
   }
 
-  function handleToggle(id, value) {
-    dispatch(toggleRead({id, value}));
+  function handleToggle( id, value) {
+    if (book.sample){
+      store.dispatch({type: "toggleRead", payload:{id, value}})
+    } else {
+      dispatch(toggleRead({id, value}));
+    }
   }
     
     return (
@@ -55,7 +68,7 @@ function SingleBookPage() {
                     <p>{book.synopsis}</p>
                     <div className="read-checkbox">
                         <input 
-                          onClick={() => handleToggle(book.id, !book.isRead)}
+                          onClick={() => handleToggle( book.id, !book.isRead)}
                           type="checkbox" 
                           defaultChecked={book.isRead} />
                         <label>{ book.isRead ? "Already Read It" : "Haven't Read it yet" }</label>
@@ -66,7 +79,7 @@ function SingleBookPage() {
                 </div>
               </div>
 
-              <Notes bookId={id} />
+              <Notes bookId={id} sample={book.sample} />
             </div> 
 
             : booksStatus == "rejected" ?

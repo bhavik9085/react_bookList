@@ -164,8 +164,15 @@ input:focus {
   }
 }
 
-.container h1 {
+.container h2 {
   margin-bottom: 20px;
+}
+.container h5 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+.container p{
+  margin-top: 20px;
 }
 .container .header-btns {
   position: absolute;

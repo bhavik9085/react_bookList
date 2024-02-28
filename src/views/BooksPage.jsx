@@ -5,6 +5,7 @@ import {selectBooks} from '../store/booksSlice.js';
 import { selectNotes } from '../store/notesSlice.js';
 import FullPageLoader from '../components/FullPageLoader.jsx';
 import { Link } from 'react-router-dom';
+import { useSamples } from '../store/Samples.jsx';
 
 function BooksPage() {
 
@@ -13,6 +14,8 @@ function BooksPage() {
   const booksLoading = useSelector(selectBooks).loading;
   const notesLoading = useSelector(selectNotes).loading;
   const pageTitle = "📖 Book List with Router, Redux & Firebase";
+  const {samples} = useSamples();
+  const sampleBooks = samples[0].books;
     
     return (
       <>
@@ -20,6 +23,7 @@ function BooksPage() {
 
         <div className="container">
             <Header pageTitle={pageTitle} />
+            <h2>Your Books</h2>
             { booksStatus == "success" && books.length ?
 
             <div className="books-container">
@@ -36,13 +40,26 @@ function BooksPage() {
 
             : booksStatus == "success" && books.length == 0 ?
 
-            <p>There are no Books to show <Link to="/add-book">Click Here</Link> to add Books Now.</p>
+            <p>There are no Books added <Link to="/add-book">Click Here</Link> to add Books Now.</p>
 
             :
 
             "Shomething happened while fetching the Books, please reload the page..."
 
             }
+
+            <div className="books-container">
+              <h2>Sample Books</h2>
+                <div className="books-list">
+                    
+                    {sampleBooks.map(book => 
+                    
+                    <Book key={book.id} book={book}  />
+                    
+                    )}
+
+                </div>
+            </div>
         </div>
 
         :

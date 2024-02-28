@@ -1,15 +1,24 @@
 import {useSelector, useDispatch} from 'react-redux';
 import {selectNotes, eraseNote, addNote} from '../store/notesSlice.js';
+import { useSamples } from '../store/Samples.jsx';
 
-function Notes({bookId}) {
+function Notes({bookId, sample}) {
     
     const dispatch = useDispatch();
-    const notes = useSelector(selectNotes).notes.filter(note => note.book_id == bookId);
+    const userNotes = JSON.parse(JSON.stringify(useSelector(selectNotes).notes));
+    const store = useSamples()
+    const sampleNotes = store.samples[0].notes;
+    userNotes.push(...sampleNotes);
+    const notes = userNotes.filter(note => note.book_id == bookId);
     const notesStatus = useSelector(selectNotes).status;
     
     function handleEraseNote(id) {
       if(confirm('Are you sure you want to erase this note?')) {
-        dispatch(eraseNote({id}));
+        if(sample){
+          store.dispatch({type: "eraseNote", payload:id})
+        } else {
+          dispatch(eraseNote({id}));
+        }
       }
     }
 
@@ -22,7 +31,11 @@ function Notes({bookId}) {
         text: document.querySelector('textarea[name=note]').value
       }
       if (newNote.title && newNote.text) {
+        if(sample){
+          store.dispatch({type: "addNote", payload: newNote});
+        } else {
           dispatch(addNote(newNote));
+        }
           document.querySelector('input[name=title]').value = "";
           document.querySelector('textarea[name=note]').value = "";
       } else {

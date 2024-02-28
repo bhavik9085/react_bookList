@@ -1,40 +1,41 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { declarations } from '../firebase/config';
-import { collection, query, where, getDocs, doc, updateDoc, deleteDoc, addDoc } from "firebase/firestore";
-
-var auth, db;
-
-declarations().then(function(result) {
-  auth = result.auth1; 
-  db = result.db1
-});
-
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { auth, db } from "../firebase/config";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+} from "firebase/firestore";
 
 export const booksSlice = createSlice({
-  name: 'books',
+  name: "books",
   initialState: {
     books: [],
-    status: 'idle',
-    loading: "loading"
+    status: "idle",
+    loading: "loading",
   },
   reducers: {
     cleanBooks: () => {
-      return {books: [], status: 'idle'};
-    }
+      return { books: [], status: "idle" };
+    },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
       .addCase(fetchBooks.pending, (state, action) => {
-        state.status = 'pending';
+        state.status = "pending";
         state.loading = "loading";
       })
       .addCase(fetchBooks.fulfilled, (state, action) => {
-        state.status = 'success';
+        state.status = "success";
         state.books = action.payload;
         state.loading = "success";
       })
       .addCase(fetchBooks.rejected, (state, action) => {
-        state.status = 'rejected';
+        state.status = "rejected";
         state.loading = "rejected";
         console.log("rejected", action.error);
       })
@@ -43,7 +44,7 @@ export const booksSlice = createSlice({
         state.loading = "loading";
       })
       .addCase(toggleRead.fulfilled, (state, action) => {
-        state.books.map(book => {
+        state.books.map((book) => {
           if (book.id == action.payload) {
             book.isRead = !book.isRead;
           }
@@ -59,7 +60,7 @@ export const booksSlice = createSlice({
         state.loading = "loading";
       })
       .addCase(eraseBook.fulfilled, (state, action) => {
-        state.books = state.books.filter(book => book.id != action.payload);
+        state.books = state.books.filter((book) => book.id != action.payload);
         state.loading = "success";
       })
       .addCase(eraseBook.rejected, (state, action) => {
@@ -77,17 +78,17 @@ export const booksSlice = createSlice({
       .addCase(addBook.rejected, (state, action) => {
         state.loading = "rejected";
         console.log("rejected", action.error);
-      })
-  }
-})
+      });
+  },
+});
 
-export const {cleanBooks} = booksSlice.actions;
+export const { cleanBooks } = booksSlice.actions;
 
-export const selectBooks = state => state.books;
+export const selectBooks = (state) => state.books;
 
 export default booksSlice.reducer;
 
-export const fetchBooks = createAsyncThunk('books/fetchBooks', async (uid) => {
+export const fetchBooks = createAsyncThunk("books/fetchBooks", async (uid) => {
   const q = query(collection(db, "bookList"), where("user_id", "==", uid));
   const querySnapshot = await getDocs(q);
   let initialData = [];
@@ -97,24 +98,27 @@ export const fetchBooks = createAsyncThunk('books/fetchBooks', async (uid) => {
     initialData.push(data);
   });
   return initialData;
-})
+});
 
-export const toggleRead = createAsyncThunk('books/toggleRead', async (action) => {
-  const toggleRef = doc(db, "bookList", action.id );
-  await updateDoc(toggleRef, {
-    isRead: action.value
-  });
-  return action.id;
-})
+export const toggleRead = createAsyncThunk(
+  "books/toggleRead",
+  async (action) => {
+    const toggleRef = doc(db, "bookList", action.id);
+    await updateDoc(toggleRef, {
+      isRead: action.value,
+    });
+    return action.id;
+  }
+);
 
-export const eraseBook = createAsyncThunk('books/eraseBook', async (action) => {
+export const eraseBook = createAsyncThunk("books/eraseBook", async (action) => {
   await deleteDoc(doc(db, "bookList", action.id));
   return action.id;
-})
+});
 
-export const addBook = createAsyncThunk('books/addBook', async (newBook) => {
+export const addBook = createAsyncThunk("books/addBook", async (newBook) => {
   newBook.user_id = auth.currentUser.uid;
   const docRef = await addDoc(collection(db, "bookList"), newBook);
   newBook.id = docRef.id;
   return newBook;
-})
+});

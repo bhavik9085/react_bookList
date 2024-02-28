@@ -1,9 +1,11 @@
 import FullPageLoader from '../components/FullPageLoader.jsx';
 import {useState} from 'react';
-import { declarations } from '../firebase/config.js';
+import { auth } from '../firebase/config.js';
 import { createUserWithEmailAndPassword,
         signInWithEmailAndPassword,
-        sendPasswordResetEmail} from "firebase/auth";
+        sendPasswordResetEmail, 
+        onAuthStateChanged,
+        signInAnonymously } from "firebase/auth";
 import { setUser } from '../store/userSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectBooks, fetchBooks } from '../store/booksSlice.js';
@@ -12,15 +14,14 @@ import { fetchNotes, selectNotes } from '../store/notesSlice.js';
 function LoginPage() {
 
   const [userCredential, setUserCredential] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [loginType, setLoginType] = useState('login');
   const [loginError, setLoginError] = useState();
   const dispatch = useDispatch();
   const booksStatus = useSelector(selectBooks).status;
   const notesStatus = useSelector(selectNotes).status;
-  const auth = declarations.auth1;
 
-  {/* onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, (user) => {
     let userDetails ={};
     if (user) {
       userDetails.uid = user.uid; 
@@ -39,7 +40,7 @@ function LoginPage() {
     if (isLoading){
       setIsLoading(false);
     }
-  }) */}
+  })
 
   function updateUserCredential(e) {
     setUserCredential({...userCredential, [e.target.name] : e.target.value});
@@ -59,40 +60,11 @@ function LoginPage() {
   async function loginHandler(e){
     e.preventDefault();
     setLoginError("");
-    let userDetails ={};
-
-    const response = await loginRequest();
-    userDetails.uid = response.localId; 
-    userDetails.email= response.email;
-    dispatch(setUser(userDetails));
-
-    if (booksStatus == "idle"){
-      dispatch(fetchBooks(userDetails.uid));
-    }
-    if (notesStatus == 'idle'){
-      dispatch(fetchNotes(userDetails.uid));
-    }
-
-    if (isLoading){
-      setIsLoading(false);
-    }
-    
-
-    // signInWithEmailAndPassword(auth, userCredential.email, userCredential.password)
-    // .catch((error) => {
-    //   const errorMessage = error.message;
-    //   setLoginError(errorMessage);
-    // });
-  }
-
-  async function loginRequest() {
-    try{
-      const response = await fetch(`https://react-booklist-v107.onrender.com:8080/${userCredential.password}/${userCredential.email}`);
-      const user = await response.json();
-      return user;
-    } catch (err){
-      console.log(err);
-    }
+    signInWithEmailAndPassword(auth, userCredential.email, userCredential.password)
+    .catch((error) => {
+      const errorMessage = error.message;
+      setLoginError(errorMessage);
+    });
   }
 
   function passwordResetHandler() {
@@ -108,6 +80,15 @@ function LoginPage() {
       });
     }
   }
+
+  function loginGuest(e) {
+    e.preventDefault();
+    signInAnonymously(auth)
+    .catch((error) => {
+      const errorMessage = error.message;
+      setLoginError(errorMessage);
+    });
+  }
   
     return (
       <>
@@ -116,6 +97,7 @@ function LoginPage() {
         <div className="container login-page">
           <section>
             <h1>Welcome to the Book App</h1>
+            <h5>Here you can Add/Manage your online books and notes of those books. Hope you enjoy!!</h5>
             <p>Login or create an account to continue</p>
             <div className="login-type">
               <button 
@@ -155,7 +137,7 @@ function LoginPage() {
                     loginType == 'login' &&
                     <p className="forgot-password" onClick={passwordResetHandler}>Forgot Password?</p>
                   }
-                  
+                  <button className="active btn btn-block guest" onClick={(e) => loginGuest(e)}>Visit as Guest</button>
               </form>
           </section>
         </div>

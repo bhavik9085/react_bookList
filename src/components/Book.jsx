@@ -1,13 +1,18 @@
 import { Link } from 'react-router-dom';
 import {useDispatch} from 'react-redux';
 import {toggleRead} from '../store/booksSlice.js';
+import { useSamples } from '../store/Samples.jsx';
   
 function Book({book}) {
     
     const dispatch = useDispatch();
+    const store = useSamples();
     
     function handleToggleRead(e, id, value) {
         e.preventDefault();
+        if(book.sample){
+            store.dispatch({type: "toggleRead", payload:{id, value}})
+        }
         dispatch(toggleRead({id, value}));
     }
 

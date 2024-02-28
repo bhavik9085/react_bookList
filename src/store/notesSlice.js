@@ -1,40 +1,42 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { declarations } from '../firebase/config';
-import { collection, query, where, getDocs, doc, deleteDoc, addDoc, writeBatch } from "firebase/firestore";
-
-var auth, db;
-
-declarations().then(function(result) {
-  auth = result.auth1; 
-  db = result.db1
-});
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { auth, db } from "../firebase/config";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  deleteDoc,
+  addDoc,
+  writeBatch,
+} from "firebase/firestore";
 
 export const notesSlice = createSlice({
-  name: 'notes',
-  initialState:{ 
-    status: 'idle',
+  name: "notes",
+  initialState: {
+    status: "idle",
     notes: [],
-    loading: "loading"
+    loading: "loading",
   },
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
       .addCase(fetchNotes.pending, (state, action) => {
         state.loading = "loading";
       })
       .addCase(fetchNotes.fulfilled, (state, action) => {
-        state.status = 'success';
+        state.status = "success";
         state.notes = action.payload;
         state.loading = "success";
       })
       .addCase(fetchNotes.rejected, (state, action) => {
-        state.status = 'rejected';
+        state.status = "rejected";
         state.loading = "rejected";
         console.log("Notes rejected", action.error);
       })
 
       .addCase(addNote.pending, (state, action) => {
-        state.loading = "loading"
+        state.loading = "loading";
       })
       .addCase(addNote.fulfilled, (state, action) => {
         state.notes.push(action.payload);
@@ -46,10 +48,10 @@ export const notesSlice = createSlice({
       })
 
       .addCase(eraseNote.pending, (state, action) => {
-        state.loading = "loading"
+        state.loading = "loading";
       })
       .addCase(eraseNote.fulfilled, (state, action) => {
-        state.notes = state.notes.filter(note => note.id != action.payload);
+        state.notes = state.notes.filter((note) => note.id != action.payload);
         state.loading = "success";
       })
       .addCase(eraseNote.rejected, (state, action) => {
@@ -58,24 +60,26 @@ export const notesSlice = createSlice({
       })
 
       .addCase(eraseBookNotes.pending, (state, action) => {
-        state.loading = "loading"
+        state.loading = "loading";
       })
       .addCase(eraseBookNotes.fulfilled, (state, action) => {
-        state.notes = state.notes.filter(note => note.book_id != action.payload);
+        state.notes = state.notes.filter(
+          (note) => note.book_id != action.payload
+        );
         state.loading = "success";
       })
       .addCase(eraseBookNotes.rejected, (state, action) => {
         console.log("Notes rejected", action.error);
         state.loading = "rejected";
-      })
-    }
-})
+      });
+  },
+});
 
-export const selectNotes = state => state.notes;
+export const selectNotes = (state) => state.notes;
 
 export default notesSlice.reducer;
 
-export const fetchNotes = createAsyncThunk('notes/fetchNotes', async (uid) => {
+export const fetchNotes = createAsyncThunk("notes/fetchNotes", async (uid) => {
   const q = query(collection(db, "notes"), where("user_id", "==", uid));
   const querySnapshot = await getDocs(q);
   let initialData = [];
@@ -85,26 +89,29 @@ export const fetchNotes = createAsyncThunk('notes/fetchNotes', async (uid) => {
     initialData.push(data);
   });
   return initialData;
-})
+});
 
-export const addNote = createAsyncThunk('books/addNote', async (newNote) => {
+export const addNote = createAsyncThunk("books/addNote", async (newNote) => {
   newNote.user_id = auth.currentUser.uid;
   const docRef = await addDoc(collection(db, "notes"), newNote);
   newNote.id = docRef.id;
   return newNote;
-})
+});
 
-export const eraseNote = createAsyncThunk('books/eraseNote', async (action) => {
+export const eraseNote = createAsyncThunk("books/eraseNote", async (action) => {
   await deleteDoc(doc(db, "notes", action.id));
   return action.id;
-})
+});
 
-export const eraseBookNotes = createAsyncThunk('books/eraseBookNotes', async (action) => {
-  const batch = writeBatch(db);
-  action.notesToDel.forEach(function(note) {
-    const ref = doc(db, "notes", note.id);
-    batch.delete(ref);
-  })
-  await batch.commit();
-  return action.id;
-})
+export const eraseBookNotes = createAsyncThunk(
+  "books/eraseBookNotes",
+  async (action) => {
+    const batch = writeBatch(db);
+    action.notesToDel.forEach(function (note) {
+      const ref = doc(db, "notes", note.id);
+      batch.delete(ref);
+    });
+    await batch.commit();
+    return action.id;
+  }
+);
